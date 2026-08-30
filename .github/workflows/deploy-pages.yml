@@ -26,11 +26,11 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          GITHUB_ACTIONS: 'true'
+          PAGES_BASE_PATH: /guige-guitar-plan
       - name: Publish static site branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./dist/client
+          publish_dir: ./dist
           force_orphan: true
