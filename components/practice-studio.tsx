@@ -54,6 +54,17 @@ export function PracticeStudio() {
             <p className="mt-3 text-xs leading-5 text-muted-foreground">完成状态仅保存在这台设备的浏览器中。</p>
           </div>
         </div>
+        <figure className="relative mt-7 overflow-hidden rounded-xl border border-border bg-[var(--cream)]">
+          {/* oxlint-disable-next-line nextjs/no-img-element -- GitHub Pages serves this static local asset directly. */}
+          <img
+            src={`${import.meta.env.BASE_URL}guige-guitar-hero.png`}
+            alt="鬼哥在温暖的练习角落用原声吉他练习旋律，身旁放着电吉他和练习笔记。"
+            className="h-52 w-full object-cover object-center sm:h-72"
+          />
+          <figcaption className="absolute bottom-3 left-3 rounded-md bg-[var(--ink)]/90 px-3 py-1.5 text-xs text-[var(--paper)] backdrop-blur-sm">
+            鬼哥的练习现场 · 从原声旋律到电吉他表达
+          </figcaption>
+        </figure>
       </header>
 
       <section aria-labelledby="weeks-title" className="pt-7">
