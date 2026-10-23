@@ -70,7 +70,7 @@ export function NotationPlayer({ notation, spec }: { notation: string; spec: Pla
     <div className="mt-3 space-y-4 rounded-lg bg-[var(--cream)] p-4 text-[var(--ink)]">
       <p className="text-sm">{spec.label} · {spec.meter}</p>
       <p className="text-xs leading-5 text-muted-foreground">{compound ? '每格为八分音符，三格一大拍；速度按附点四分音符计。数“1-la-li 2-la-li”。' : '每格一拍；速度按四分音符计。'}横线延长一格，不重新拨弦。</p>
-      <div className={`grid gap-3 ${compound ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`} aria-label="练习简谱">
+      <div className={`grid gap-3 ${compound ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-4'}`} aria-label="练习简谱">
         {score.bars.map((bar, barIndex) => (
           <div key={barIndex} className="min-w-0 border-l-2 border-border pl-2">
             <span className="text-xs text-muted-foreground">第 {barIndex + 1} 小节</span>
