@@ -34,7 +34,7 @@ export type PracticeSession = {
   recordingPrompt: string;
 };
 
-const dayNames = ['一', '二', '三', '四', '五', '六', '日'];
+const dayNames = ['一', '二', '三', '四', '五', '六', '七'];
 
 export const weeks: WeekPlan[] = [
   {
@@ -212,7 +212,7 @@ export function getPracticeSession(week: WeekPlan, day: number): PracticeSession
   const dayName = dayNames[day - 1] ?? '一';
 
   return {
-    title: `第 ${week.week} 周 · 周${dayName}｜${focus}`,
+    title: `课程第 ${week.week} 周 · 第${dayName}天｜${focus}`,
     focus,
     blocks: [
       { label: '节奏开机', minutes: 5, instruction: '节拍器 60–72 BPM。先拍手数 4 小节，再弹单音；每一拍都能说出“1 和 2 和”。' },

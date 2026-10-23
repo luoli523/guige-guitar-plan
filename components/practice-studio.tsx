@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckCircle2, Circle, Clock3, ExternalLink, Headphones, Music2, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FamilyProgressPanel, players } from '@/components/family-progress';
 import { legacyKey, progressKey, readProgress, toggleProgress, type Player } from '@/lib/progress';
 import { coursePrinciples, getPracticeSession, weeks } from '@/lib/course';
+import { calendarKey, dateKey, readCalendar, toggleDate } from '@/lib/calendar';
 
-const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const days = ['第1天', '第2天', '第3天', '第4天', '第5天', '第6天', '第7天'];
 
 export function PracticeStudio() {
   const [weekIndex, setWeekIndex] = useState(0);
@@ -20,6 +21,21 @@ export function PracticeStudio() {
     catch { return readProgress(null, null); }
   });
   const [notice, setNotice] = useState('');
+  const [today, setToday] = useState(() => dateKey());
+  const [calendar, setCalendar] = useState(() => {
+    try { return readCalendar(window.localStorage.getItem(calendarKey), progress); }
+    catch { return readCalendar(null, progress); }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem(calendarKey, JSON.stringify(calendar)); }
+    catch { queueMicrotask(() => setNotice('日期打卡暂未保存，请允许浏览器本地存储。')); }
+  }, [calendar]);
+  useEffect(() => {
+    const refresh = () => setToday(dateKey());
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
+  }, []);
   const week = weeks[weekIndex];
   const session = useMemo(() => getPracticeSession(week, day), [week, day]);
   const sessionKey = `${week.week}-${day}`;
@@ -27,9 +43,13 @@ export function PracticeStudio() {
   function toggleComplete(player: Player) {
     const next = toggleProgress(progress, player, sessionKey);
     setProgress(next);
+    if (next[player][sessionKey]) {
+      const actualDate = dateKey();
+      setCalendar(previous => ({ ...previous, [player]: { ...previous[player], [actualDate]: true } }));
+    }
     try {
       window.localStorage.setItem(progressKey, JSON.stringify(next));
-      setNotice(next.dad[sessionKey] && next.guazai[sessionKey] ? '🎉 这一课，父子一起完成！' : `${player === 'dad' ? '爸爸' : '瓜仔'}${next[player][sessionKey] ? '打卡成功，继续坚持！' : '已撤销本日打卡。'}`);
+      setNotice(next.dad[sessionKey] && next.guazai[sessionKey] ? '🎉 这一课，父子一起完成！' : `${player === 'dad' ? '爸爸' : '瓜仔'}${next[player][sessionKey] ? '完成本课，已记入今天练习！' : '已撤销本课完成，日期打卡可在顶部单独调整。'}`);
     } catch { setNotice('本次记录暂未保存，请允许浏览器本地存储后重新打卡。'); }
   }
 
@@ -52,7 +72,7 @@ export function PracticeStudio() {
             <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">从听唱、和弦内音到小小的 solo。每天练一点，听见彼此的进步。</p>
           </div>
         </div>
-        <FamilyProgressPanel progress={progress} week={week.week} sessionKey={sessionKey} onSelectDay={(selectedDay) => { setDay(selectedDay); setNotice(''); }} />
+        <FamilyProgressPanel progress={progress} calendar={calendar} today={today} onToggleDate={(player, date) => setCalendar(previous => toggleDate(previous, player, date))} />
         <figure className="relative mt-7 overflow-hidden rounded-xl border border-border bg-[var(--cream)]">
           {/* oxlint-disable-next-line nextjs/no-img-element -- GitHub Pages serves this static local asset directly. */}
           <img
@@ -102,7 +122,7 @@ export function PracticeStudio() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-[var(--paper)] p-4">
             <p className="max-w-xl text-sm leading-6 text-muted-foreground"><strong className="text-foreground">录音提示：</strong>{session.recordingPrompt}</p>
-            <div className="grid w-full gap-3 sm:grid-cols-2">{players.map(({ id, name }) => <Button key={id} aria-pressed={!!progress[id][sessionKey]} onClick={() => toggleComplete(id)} variant={progress[id][sessionKey] ? 'secondary' : 'default'}>{progress[id][sessionKey] ? <CheckCircle2 /> : <Circle />}{name} · {progress[id][sessionKey] ? '已完成（点击撤销）' : '完成本日练习'}</Button>)}</div>
+            <div className="grid w-full gap-3 sm:grid-cols-2">{players.map(({ id, name }) => <Button key={id} aria-pressed={!!progress[id][sessionKey]} onClick={() => toggleComplete(id)} variant={progress[id][sessionKey] ? 'secondary' : 'default'}>{progress[id][sessionKey] ? <CheckCircle2 /> : <Circle />}{name} · {progress[id][sessionKey] ? '本课已完成（点击撤销）' : '完成本课并记入今天'}</Button>)}</div>
             <output aria-live="polite" className="min-h-6 text-sm font-medium text-[var(--rust)]">{notice}</output>
           </div>
         </div>
