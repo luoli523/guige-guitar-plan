@@ -52,7 +52,7 @@ export function PracticeStudio() {
             <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">从听唱、和弦内音到小小的 solo。每天练一点，听见彼此的进步。</p>
           </div>
         </div>
-        <FamilyProgressPanel progress={progress} week={week.week} sessionKey={sessionKey} />
+        <FamilyProgressPanel progress={progress} week={week.week} sessionKey={sessionKey} onSelectDay={(selectedDay) => { setDay(selectedDay); setNotice(''); }} />
         <figure className="relative mt-7 overflow-hidden rounded-xl border border-border bg-[var(--cream)]">
           {/* oxlint-disable-next-line nextjs/no-img-element -- GitHub Pages serves this static local asset directly. */}
           <img
@@ -77,8 +77,8 @@ export function PracticeStudio() {
         </div>
       </section>
 
-      <section className="grid gap-5 pt-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-5">
+      <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 pt-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-5">
           <Card className="border border-border bg-card shadow-none">
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3"><div><Badge variant="outline">第 {week.week} 周 · {week.phase}</Badge><CardTitle className="mt-3 text-2xl">{week.title}</CardTitle><CardDescription className="mt-2 max-w-2xl leading-6">{week.objective}</CardDescription></div><span className="rounded-full bg-[var(--cream-deep)] px-3 py-1.5 font-mono text-xs text-[var(--ink)]">{week.key}</span></div>
