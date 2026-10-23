@@ -1,8 +1,9 @@
 'use client';
 
-import { CheckCircle2, Circle, Clock3, ExternalLink, Headphones, Music2, Sparkles } from 'lucide-react';
+import { CheckCircle2, Circle, Clock3, Music2, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { NotationPlayer } from '@/components/notation-player';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -117,7 +118,7 @@ export function PracticeStudio() {
 
           <Card className="border border-border bg-card shadow-none">
             <CardHeader><div className="flex items-center gap-2"><Music2 className="size-5 text-[var(--rust)]" /><div><CardTitle>今天的原创简谱短句</CardTitle><CardDescription>用于练音级、落点和乐句；不是受版权保护曲目的转录。</CardDescription></div></div></CardHeader>
-            <CardContent><p className="font-mono text-sm text-muted-foreground">和弦：{session.chords}</p><pre className="mt-3 overflow-x-auto rounded-lg bg-[var(--cream)] p-4 font-mono text-lg leading-8 text-[var(--ink)] sm:text-xl">{session.notation}</pre><p className="mt-3 text-sm leading-6 text-muted-foreground">{session.cue}</p></CardContent>
+            <CardContent><p className="font-mono text-sm text-muted-foreground">和弦：{session.chords}</p><NotationPlayer key={sessionKey} notation={session.notation} spec={session.playback} /><p className="mt-3 text-sm leading-6 text-muted-foreground">{session.cue}</p></CardContent>
           </Card>
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-[var(--paper)] p-4">
@@ -128,7 +129,6 @@ export function PracticeStudio() {
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
-          <Card className="border border-border bg-card shadow-none"><CardHeader><div className="flex items-center gap-2"><Headphones className="size-5 text-[var(--rust)]" /><CardTitle>本周曲目入口</CardTitle></div></CardHeader><CardContent><p className="text-lg font-medium">{week.piece.title}</p><Badge variant="secondary" className="mt-2">{week.piece.type}</Badge><p className="mt-3 text-sm leading-6 text-muted-foreground">{week.piece.sourceLabel}</p>{week.piece.sourceUrl !== '#' ? <a className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[var(--rust)] underline underline-offset-4" href={week.piece.sourceUrl} target="_blank" rel="noreferrer">打开合法资料 / 聆听入口 <ExternalLink className="size-3.5" /></a> : <p className="mt-4 text-sm text-muted-foreground">本周直接使用本站原创练习。</p>}</CardContent></Card>
           <Card className="border border-border bg-card shadow-none"><CardHeader><div className="flex items-center gap-2"><Sparkles className="size-5 text-[var(--rust)]" /><CardTitle>三条不变原则</CardTitle></div></CardHeader><CardContent><ul className="space-y-3">{coursePrinciples.map((principle) => <li className="flex gap-2 text-sm leading-6 text-muted-foreground" key={principle}><span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--signal)]" />{principle}</li>)}</ul></CardContent></Card>
         </aside>
       </section>
