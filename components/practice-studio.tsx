@@ -6,34 +6,37 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { FamilyProgressPanel, players } from '@/components/family-progress';
+import { legacyKey, progressKey, readProgress, toggleProgress, type Player } from '@/lib/progress';
 import { coursePrinciples, getPracticeSession, weeks } from '@/lib/course';
 
-const storageKey = 'guige-guitar-plan-completed';
 const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 export function PracticeStudio() {
   const [weekIndex, setWeekIndex] = useState(0);
   const [day, setDay] = useState(1);
-  const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
-    if (typeof window === 'undefined') return {};
-    const saved = window.localStorage.getItem(storageKey);
-    return saved ? JSON.parse(saved) as Record<string, boolean> : {};
+  const [progress, setProgress] = useState(() => {
+    try { return readProgress(window.localStorage.getItem(progressKey), window.localStorage.getItem(legacyKey)); }
+    catch { return readProgress(null, null); }
   });
+  const [notice, setNotice] = useState('');
   const week = weeks[weekIndex];
   const session = useMemo(() => getPracticeSession(week, day), [week, day]);
   const sessionKey = `${week.week}-${day}`;
-  const completedCount = Object.values(completed).filter(Boolean).length;
 
-  function toggleComplete() {
-    const next = { ...completed, [sessionKey]: !completed[sessionKey] };
-    setCompleted(next);
-    window.localStorage.setItem(storageKey, JSON.stringify(next));
+  function toggleComplete(player: Player) {
+    const next = toggleProgress(progress, player, sessionKey);
+    setProgress(next);
+    try {
+      window.localStorage.setItem(progressKey, JSON.stringify(next));
+      setNotice(next.dad[sessionKey] && next.guazai[sessionKey] ? '🎉 这一课，父子一起完成！' : `${player === 'dad' ? '爸爸' : '瓜仔'}${next[player][sessionKey] ? '打卡成功，继续坚持！' : '已撤销本日打卡。'}`);
+    } catch { setNotice('本次记录暂未保存，请允许浏览器本地存储后重新打卡。'); }
   }
 
   function selectWeek(index: number) {
     setWeekIndex(index);
     setDay(1);
+    setNotice('');
   }
 
   return (
@@ -41,28 +44,24 @@ export function PracticeStudio() {
       <header className="border-b border-border pb-7">
         <div className="flex flex-wrap items-center gap-3">
           <Badge className="bg-[var(--signal)] text-[var(--ink)]">12 WEEK PRACTICE STUDIO</Badge>
-          <span className="text-sm text-muted-foreground">每天 30–45 分钟 · 原声为主，电吉他专项补强</span>
+          <span className="text-sm text-muted-foreground">爸爸和瓜仔的练琴约定 · 各自进步，一起坚持</span>
         </div>
-        <div className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_0.6fr] lg:items-end">
+        <div className="mt-5">
           <div>
-            <h1 className="font-[family-name:var(--font-display)] text-4xl leading-[0.96] tracking-tight text-foreground sm:text-6xl">把旋律弹成<br /><em className="font-normal text-[var(--rust)]">你自己的 solo。</em></h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">不靠六线谱堆手势。每天从听唱、和弦内音、技巧到录音，完成一个可听见的动作。</p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="flex items-center justify-between text-sm"><span className="font-medium">已完成练习</span><span className="font-mono text-[var(--rust)]">{completedCount} / 84</span></div>
-            <Progress value={(completedCount / 84) * 100} className="mt-3" />
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">完成状态仅保存在这台设备的浏览器中。</p>
+            <h1 className="font-[family-name:var(--font-display)] text-4xl leading-tight tracking-tight text-foreground sm:text-5xl">瓜仔和爸爸，<br /><em className="font-normal text-[var(--rust)]">一起把旋律弹出来。</em></h1>
+            <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">从听唱、和弦内音到小小的 solo。每天练一点，听见彼此的进步。</p>
           </div>
         </div>
+        <FamilyProgressPanel progress={progress} week={week.week} sessionKey={sessionKey} />
         <figure className="relative mt-7 overflow-hidden rounded-xl border border-border bg-[var(--cream)]">
           {/* oxlint-disable-next-line nextjs/no-img-element -- GitHub Pages serves this static local asset directly. */}
           <img
-            src={`${import.meta.env.BASE_URL}guige-guitar-hero.png`}
-            alt="鬼哥在温暖的练习角落用原声吉他练习旋律，身旁放着电吉他和练习笔记。"
-            className="h-52 w-full object-cover object-center sm:h-72"
+            src={`${import.meta.env.BASE_URL}family-guitar-hero.webp`}
+            alt="爸爸弹原声吉他，瓜仔弹蓝色电吉他，父子坐在一起快乐练琴。"
+            className="aspect-video w-full object-contain"
           />
           <figcaption className="absolute bottom-3 left-3 rounded-md bg-[var(--ink)]/90 px-3 py-1.5 text-xs text-[var(--paper)] backdrop-blur-sm">
-            鬼哥的练习现场 · 从原声旋律到电吉他表达
+            父子练琴时光 · 今天也一起进步
           </figcaption>
         </figure>
       </header>
@@ -88,7 +87,7 @@ export function PracticeStudio() {
           </Card>
 
           <nav aria-label="选择训练日" className="grid grid-cols-7 gap-1.5">
-            {days.map((label, index) => { const active = day === index + 1; const done = completed[`${week.week}-${index + 1}`]; return <Button key={label} variant={active ? 'default' : 'outline'} className="h-14 flex-col gap-0 px-1 text-xs" onClick={() => setDay(index + 1)}><span>{label}</span>{done ? <CheckCircle2 className="mt-1 size-3" aria-label="已完成" /> : <Circle className="mt-1 size-3 opacity-45" aria-hidden="true" />}</Button>; })}
+            {days.map((label, index) => { const active = day === index + 1; const key = `${week.week}-${index + 1}`; return <Button key={label} variant={active ? 'default' : 'outline'} aria-current={active ? 'step' : undefined} className="h-20 flex-col gap-1 px-1 text-xs" onClick={() => { setDay(index + 1); setNotice(''); }}><span>{label}</span><span aria-label={`爸爸${progress.dad[key] ? '已完成' : '未完成'}`}>爸 {progress.dad[key] ? '✓' : '○'}</span><span aria-label={`瓜仔${progress.guazai[key] ? '已完成' : '未完成'}`}>瓜 {progress.guazai[key] ? '✓' : '○'}</span></Button>; })}
           </nav>
 
           <Card className="border border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)] shadow-none">
@@ -103,7 +102,8 @@ export function PracticeStudio() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-[var(--paper)] p-4">
             <p className="max-w-xl text-sm leading-6 text-muted-foreground"><strong className="text-foreground">录音提示：</strong>{session.recordingPrompt}</p>
-            <Button onClick={toggleComplete} variant={completed[sessionKey] ? 'secondary' : 'default'}>{completed[sessionKey] ? <CheckCircle2 /> : <Circle />}{completed[sessionKey] ? '今天已完成' : '标记今天完成'}</Button>
+            <div className="grid w-full gap-3 sm:grid-cols-2">{players.map(({ id, name }) => <Button key={id} aria-pressed={!!progress[id][sessionKey]} onClick={() => toggleComplete(id)} variant={progress[id][sessionKey] ? 'secondary' : 'default'}>{progress[id][sessionKey] ? <CheckCircle2 /> : <Circle />}{name} · {progress[id][sessionKey] ? '已完成（点击撤销）' : '完成本日练习'}</Button>)}</div>
+            <output aria-live="polite" className="min-h-6 text-sm font-medium text-[var(--rust)]">{notice}</output>
           </div>
         </div>
 
